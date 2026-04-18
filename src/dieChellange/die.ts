@@ -116,7 +116,7 @@ export class Die extends DieChallengeObject {
         return this.faceValues[topIndex];
     }
 
-    private static readonly rollForce: number = 10;
+    private static readonly rollForce: number = 12;
     private static readonly rollSpin: number = 15;
     private static getRollSpin() {
         return new Vector3(Die.randomHalf(), Die.randomHalf(), Die.randomHalf()).normalize().scale(Die.rollSpin);

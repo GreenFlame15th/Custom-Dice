@@ -79,6 +79,7 @@ export class PlayerHand {
             this.draggedCard.animations = [];
             this.draggedCard.setParent(null, true, true);
             this.dieChellange.camera.detachControl();
+            this.draggedCard.setInHand(false);
             this.draggedCard.onStartDrag(this);
         }
     }
@@ -92,6 +93,7 @@ export class PlayerHand {
                     this.organizeHand();
                 }
                 else {
+                    this.draggedCard.setInHand(true);
                     this.draggedCard.onEndDrag(this);
                     this.organizeHand();
                 }
@@ -99,6 +101,7 @@ export class PlayerHand {
                 this.dieChellange.stopAnimation(this.draggedCard);
                 this.draggedCard.animations = [];
                 this.draggedCard.setParent(this.handAnchor, true, true);
+                this.draggedCard.setInHand(true);
                 this.draggedCard.onEndDrag(this);
                 this.organizeHand();
             }
@@ -131,13 +134,13 @@ export class PlayerHand {
                 const cameraForward = this.dieChellange.camera.getForwardRay().direction;
                 const flatForward = new Vector3(-cameraForward.x, 0, -cameraForward.z).normalize();
 
-                const lookAtTarget = flatForward.scale(15);
+                const lookAtTarget = flatForward.scale(20);
 
                 const diff = lookAtTarget.subtract(this.draggedCard.position);
                 const targetYaw = Math.atan2(diff.x, diff.z);
 
                 const targetQuaternion = Quaternion.RotationYawPitchRoll(
-                    targetYaw,
+                    targetYaw + Math.PI,
                     PlayerHand.targetAngleX,
                     0
                 );

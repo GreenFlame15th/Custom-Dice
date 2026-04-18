@@ -1,6 +1,5 @@
-import { Mesh, Scene, MeshBuilder, StandardMaterial, Texture, Vector3, Animation, QuadraticEase, EasingFunction, Color3, VertexData, Quaternion, CreatePlaneVertexData } from "@babylonjs/core";
+import { Mesh, Scene, MeshBuilder, StandardMaterial, Texture, Vector3, Animation, Color3, CreatePlaneVertexData, DynamicTexture, ICanvasRenderingContext } from "@babylonjs/core";
 import { PlayerHand } from "./playerHand";
-import { DieChallenge } from "./dieChallenge";
 import { DieChallengeObject } from "./dieChellangeObject";
 import { CardHighlight } from "./cardHighlight";
 
@@ -9,33 +8,86 @@ export abstract class Card extends DieChallengeObject {
     public originalRotation: Vector3 = Vector3.Zero();
     public isDragged: boolean = false;
     public cardHighlight: CardHighlight | null = null;
+    private myMaterial: StandardMaterial;
+    private width: number = 512;
+    private height: number = 716;
+    private padding: number = 100;
 
-    constructor(name: string, scene: Scene) {
+    constructor(name: string, scene: Scene, title: string, description: string, private color: Color3) {
         super(name, scene);
 
         const vertexData = CreatePlaneVertexData({ width: 1, height: 1.4 });
         vertexData.applyToMesh(this);
 
+        const dynamicTexture = new DynamicTexture("cardTexture_" + name, { width: this.width, height: this.height  }, scene);
+
         const mat = new StandardMaterial("mat_" + name, scene);
+        mat.diffuseTexture = dynamicTexture;
         mat.backFaceCulling = false;
-
-        mat.emissiveColor = new Color3(1, 1, 1);
-        mat.diffuseColor = new Color3(1, 1, 1);
-        mat.specularColor = new Color3(0, 0, 0);
-
         this.material = mat;
+        this.myMaterial = mat;
+        this.setInHand(true);
+
+        this.drawCardUI(dynamicTexture, title, description);
+    }
+
+    public setInHand(inHand: boolean) {
+        if (inHand) {
+            this.myMaterial.emissiveColor = Color3.White();
+            this.renderingGroupId = 1;
+        } else {
+            this.myMaterial.emissiveColor = Color3.Black();
+            this.renderingGroupId = 0;
+        }
+    }
+
+    private drawCardUI(texture: DynamicTexture, title: string, description: string) {
+        const ctx = texture.getContext();
+
+        ctx.clearRect(0, 0, this.width, this.height);
+        ctx.fillStyle = this.color.toHexString();
+        ctx.fillRect(0, 0, this.width, this.height);
+        
+        texture.drawText(title, null, 150, "bold 88px Arial", "White", "transparent", true);
+        
+        const fontSize = 38;
+        const lineHeight = 44;
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillStyle = "#e2e2e2";
+        
+        (ctx as any).textAlign = "center";  
+
+        const centerX = this.width / 2;
+        this.wrapText(ctx, description, centerX, 350, this.width - (this.padding * 2), lineHeight);
+
+        texture.update();
+    }
+
+    private wrapText(ctx: ICanvasRenderingContext, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line.trim(), x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line.trim(), x, currentY);
     }
 
     public animateTo(position: Vector3, rotation: Vector3) {
         const frameRate = 30;
-        Animation.CreateAndStartAnimation(
-            "cardMove", this, "position", frameRate, 1,
-            this.position, position, Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-        Animation.CreateAndStartAnimation(
-            "cardRot", this, "rotation", frameRate, 1,
-            this.rotation, rotation, Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
+        Animation.CreateAndStartAnimation("cardMove", this, "position", frameRate, 1, this.position, position, Animation.ANIMATIONLOOPMODE_CONSTANT);
+        Animation.CreateAndStartAnimation("cardRot", this, "rotation", frameRate, 1, this.rotation, rotation, Animation.ANIMATIONLOOPMODE_CONSTANT);
     }
 
     public animateToOrgin() { this.animateTo(this.originalPosition, this.originalRotation) }
@@ -45,15 +97,14 @@ export abstract class Card extends DieChallengeObject {
         this.originalRotation = this.absoluteRotationQuaternion.toEulerAngles().clone();
     }
 
-    public abstract onPlay(hand: PlayerHand) : boolean;
+    public abstract onPlay(hand: PlayerHand): boolean;
 
-    public removed(hand:PlayerHand)
-    {
+    public removed(hand: PlayerHand) {
         hand.removeCard(this);
         this.dispose();
     }
 
-    public abstract onDrag(hand: PlayerHand) : void;
-    public abstract onStartDrag(hand: PlayerHand) : void;
-    public abstract onEndDrag(hand: PlayerHand) : void;
+    public abstract onDrag(hand: PlayerHand): void;
+    public abstract onStartDrag(hand: PlayerHand): void;
+    public abstract onEndDrag(hand: PlayerHand): void;
 }

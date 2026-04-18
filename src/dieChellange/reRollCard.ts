@@ -1,15 +1,18 @@
 import { Card } from "./card";
 import { PlayerHand } from "./playerHand";
 import { CardHighlight } from "./cardHighlight";
-import { Scene } from "@babylonjs/core";
+import { Color3, Scene } from "@babylonjs/core";
 
 export class ReRollCard extends Card {
 
     constructor(name: string, scene: Scene)
     {
-        super(name, scene)
+        super(name, scene, 
+            "Re-roll",
+            "Rerolls all\ncard in area",
+            new Color3(0.094, 0.678, 0.69)
+        )
         this.cardHighlight = new CardHighlight(1.7, 1.6);
-
     }
 
     public onDrag(hand: PlayerHand): void {
