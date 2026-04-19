@@ -44,11 +44,10 @@ export class DieChallenge extends Scene {
 
         this.spiritBox = new SpiritBox(this);
         this.hand = new PlayerHand(this);
-
         this.setupObservables();
+        this.dieManager.setUpDice(this);
 
         for (let i = 0; i < 3; i++) {
-            this.createDie();
             this.makeCard();
         }
 
@@ -74,11 +73,6 @@ export class DieChallenge extends Scene {
         light.intensity = 1.5;
     }
 
-    private createDie() {
-        const die = new Die(this, [1, 1, 1, 10, 10, 10]);
-        this.dieManager.dice.push(die);
-    }
-
     private makeCard() {
         const newCard = new ReRollCard("ReRollCard", this);
         this.hand.addCard(newCard);
@@ -88,7 +82,6 @@ export class DieChallenge extends Scene {
         this.onKeyboardObservable.add((kbInfo) => {
             if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
                 switch (kbInfo.event.code) {
-                    case "KeyA": this.createDie(); break;
                     case "KeyS": this.makeCard(); break;
                 }
             }

@@ -8,19 +8,19 @@ export class Die extends DieChallengeObject {
     private static _sharedHighlightMat: StandardMaterial;
 
     private static readonly faceNormals = [
-    new Vector3(0, 0, 1),  // 0: Back
-    new Vector3(0, 0, -1), // 1: Front
-    new Vector3(1, 0, 0),  // 2: Right
-    new Vector3(-1, 0, 0), // 3: Left
-    new Vector3(0, 1, 0),  // 4: Top
-    new Vector3(0, -1, 0)  // 5: Bottom
-];
+        new Vector3(0, 0, 1),  // 0: Back
+        new Vector3(0, 0, -1), // 1: Front
+        new Vector3(1, 0, 0),  // 2: Right
+        new Vector3(-1, 0, 0), // 3: Left
+        new Vector3(0, 1, 0),  // 4: Top
+        new Vector3(0, -1, 0)  // 5: Bottom
+    ];
 
-    public constructor(scene: Scene, faceValues: number[]) {
+    public constructor(scene: Scene, faceValues: number[], dieColor: Color3[] | Color3, textColor: Color3) {
         super("die", scene);
         this.faceValues = faceValues;
 
-        const faceUV = Array.from({ length: 6 }, (_, i) => 
+        const faceUV = Array.from({ length: 6 }, (_, i) =>
             new Vector4((i % 3) / 3, Math.floor(i / 3) / 2, (i % 3 + 1) / 3, (Math.floor(i / 3) + 1) / 2)
         );
         CreateBoxVertexData({ size: 0.6, faceUV }).applyToMesh(this);
@@ -32,22 +32,23 @@ export class Die extends DieChallengeObject {
         this.hilightMesh.isPickable = false;
         this.hilightMesh.setEnabled(false);
 
-        const mat = new StandardMaterial(`dieMat_${this.uniqueId}`, scene);
-        const tex = new DynamicTexture("dieTex", { width: 768, height: 512 }, scene, false);
-        this.drawDiceFaces(tex);
-        
-        mat.diffuseTexture = tex;
-        mat.emissiveColor = new Color3(0.2, 0.2, 0.2);
-        mat.specularColor = new Color3(0.5, 0.5, 0.5);
-        mat.backFaceCulling = true;
-        this.material = mat;
+        const material = new StandardMaterial(`dieMat_${this.uniqueId}`, scene);
+        const texture = new DynamicTexture("dieTex", { width: 768, height: 512 }, scene, false);
+        this.drawDiceFaces(texture, dieColor, textColor);
+
+        material.diffuseTexture = texture;
+        material.emissiveColor = new Color3(0.2, 0.2, 0.2);
+        material.specularColor = new Color3(0.5, 0.5, 0.5);
+        material.backFaceCulling = true;
+        this.material = material;
 
         this.physicsAggregate = new PhysicsAggregate(this, PhysicsShapeType.BOX, { mass: 1, restitution: 0.5, friction: 0.5 }, scene);
         this.physicsAggregate.body.setLinearDamping(0.3);
         this.physicsAggregate.body.setAngularDamping(0.3);
 
         this.position = new Vector3(Die.randomHalf(), 2, Die.randomHalf());
-        this.roll();
+        this.physicsBody?.applyImpulse(new Vector3(Die.randomHalf(), 0, Die.randomHalf()).normalize().scale(12), this.absolutePosition);
+        this.physicsBody?.setAngularVelocity(new Vector3(Die.randomHalf(), Die.randomHalf(), Die.randomHalf()).normalize().scale(15));
     }
 
     private static getHighlightMaterial(scene: Scene): StandardMaterial {
@@ -60,19 +61,28 @@ export class Die extends DieChallengeObject {
         return this._sharedHighlightMat;
     }
 
-    private drawDiceFaces(tex: DynamicTexture) {
-        const ctx = tex.getContext() as CanvasRenderingContext2D;;
-        const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#FFF333", "#33FFF3"];
+    private readonly underlineWidth : number = 80;
+    private readonly underlineHeight : number = 20;
+    private drawDiceFaces(tex: DynamicTexture, dieColor: Color3[] | Color3, textColor: Color3) {
+        const ctx = tex.getContext() as CanvasRenderingContext2D;
+        const isArray = Array.isArray(dieColor);
+
         this.faceValues.forEach((val, i) => {
             const x = (i % 3) * 256;
             const y = (1 - Math.floor(i / 3)) * 256;
-            ctx.fillStyle = colors[i % colors.length];
+
+            ctx.fillStyle = (isArray ? dieColor[i % dieColor.length] : dieColor).toHexString();
             ctx.fillRect(x, y, 256, 256);
-            ctx.fillStyle = "black";
+
+            ctx.fillStyle = textColor.toHexString();
             ctx.font = "150px Impact";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(val.toString(), x + 128, y + 128);
+
+            if (val === 6 || val === 9) {
+                ctx.fillRect(x + 128 - (this.underlineWidth / 2), y + 128 + 60, this.underlineWidth, this.underlineHeight);
+            }
         });
         tex.update();
     }
@@ -86,8 +96,7 @@ export class Die extends DieChallengeObject {
         this.hilightMesh.setEnabled(true);
     }
 
-    public removeGlow()
-    {
+    public removeGlow() {
         const hl = this.getDieChallenge()?.highlightLayer;
         if (!hl) return;
 
@@ -97,11 +106,11 @@ export class Die extends DieChallengeObject {
 
     private static readonly epsilon: number = 1;
     public isStill(): boolean {
-    const body = this.physicsAggregate.body;
-    const linVel = body.getLinearVelocity();
-    const angVel = body.getAngularVelocity();
-    return linVel.lengthSquared() < Die.epsilon && angVel.lengthSquared() < Die.epsilon;
-}
+        const body = this.physicsAggregate.body;
+        const linVel = body.getLinearVelocity();
+        const angVel = body.getAngularVelocity();
+        return linVel.lengthSquared() < Die.epsilon && angVel.lengthSquared() < Die.epsilon;
+    }
 
     public getTopValue(): number {
         let maxDot = -Infinity;

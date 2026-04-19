@@ -21,11 +21,13 @@ export class PlayerHand {
         const camera = this.dieChellange.camera;
         const isAttached = !!camera.inputs.attachedToElement;
         if (draggedCard) {
-            if(isAttached) camera.detachControl();
+            this.dieChellange.camera.angularSensibilityX = Infinity;
+            this.dieChellange.camera.angularSensibilityY = Infinity;
             draggedCard.isDragged = true;
         }
         else {
-            if(!isAttached) camera.attachControl();
+            this.dieChellange.camera.angularSensibilityX = 1000;
+            this.dieChellange.camera.angularSensibilityY = 1000;
         }
     }
 
@@ -36,6 +38,7 @@ export class PlayerHand {
         this.hilightCard = new Card("Hilight Card", dieChellange, "", "", Color3.White());
         this.hilightCard.setParent(dieChellange.camera);
         this.hilightCard.setEnabled(false);
+        this.hilightCard.isPickable = false;
 
         this.handAnchor = new TransformNode("handAnchor", dieChellange);
         this.handAnchor.parent = dieChellange.camera;
