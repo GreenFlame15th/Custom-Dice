@@ -2,8 +2,9 @@ import { Card } from "./card";
 import { PlayerHand } from "./playerHand";
 import { CardHighlight } from "./cardHighlight";
 import { Color3, Scene } from "@babylonjs/core";
+import { playableCard } from "./playableCard";
 
-export class ReRollCard extends Card {
+export class ReRollCard extends playableCard {
 
     constructor(name: string, scene: Scene)
     {

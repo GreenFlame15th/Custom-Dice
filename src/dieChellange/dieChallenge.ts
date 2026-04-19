@@ -99,7 +99,6 @@ export class DieChallenge extends Scene {
     private createDie() {
         const die = new Die(this, [1, 1, 1, 10, 10, 10]);
         this.dice.push(die);
-        die.setGlow(true);
     }
 
     private makeCard() {

@@ -3,7 +3,7 @@ import { PlayerHand } from "./playerHand";
 import { DieChallengeObject } from "./dieChellangeObject";
 import { CardHighlight } from "./cardHighlight";
 
-export abstract class Card extends DieChallengeObject {
+export class Card extends DieChallengeObject {
     public originalPosition: Vector3 = Vector3.Zero();
     public originalRotation: Vector3 = Vector3.Zero();
     public isDragged: boolean = false;
@@ -42,11 +42,16 @@ export abstract class Card extends DieChallengeObject {
     }
 
     private drawCardUI(texture: DynamicTexture, title: string, description: string) {
-        const ctx = texture.getContext();
+        const ctx = texture.getContext() as CanvasRenderingContext2D;
 
         ctx.clearRect(0, 0, this.width, this.height);
         ctx.fillStyle = this.color.toHexString();
         ctx.fillRect(0, 0, this.width, this.height);
+
+        const borderThickness = 10; 
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = borderThickness;
+        ctx.strokeRect(borderThickness / 2, borderThickness / 2, this.width - borderThickness, this.height - borderThickness);
         
         texture.drawText(title, null, 150, "bold 88px Arial", "White", "transparent", true);
         
@@ -55,7 +60,7 @@ export abstract class Card extends DieChallengeObject {
         ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = "#e2e2e2";
         
-        (ctx as any).textAlign = "center";  
+        ctx.textAlign = "center";  
 
         const centerX = this.width / 2;
         this.wrapText(ctx, description, centerX, 350, this.width - (this.padding * 2), lineHeight);
@@ -63,7 +68,7 @@ export abstract class Card extends DieChallengeObject {
         texture.update();
     }
 
-    private wrapText(ctx: ICanvasRenderingContext, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+    private wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
         const words = text.split(' ');
         let line = '';
         let currentY = y;
@@ -96,15 +101,4 @@ export abstract class Card extends DieChallengeObject {
         this.originalPosition = this.getAbsolutePosition().clone();
         this.originalRotation = this.absoluteRotationQuaternion.toEulerAngles().clone();
     }
-
-    public abstract onPlay(hand: PlayerHand): boolean;
-
-    public removed(hand: PlayerHand) {
-        hand.removeCard(this);
-        this.dispose();
-    }
-
-    public abstract onDrag(hand: PlayerHand): void;
-    public abstract onStartDrag(hand: PlayerHand): void;
-    public abstract onEndDrag(hand: PlayerHand): void;
 }

@@ -1,19 +1,21 @@
-import { TransformNode, Scene, Vector3, Camera, Plane, Quaternion } from "@babylonjs/core";
+import { TransformNode, Scene, Vector3, Camera, Plane, Quaternion, Color3 } from "@babylonjs/core";
 import { Card } from "./card";
 import { SpiritBox } from "./spiritBox";
 import { DieChallenge } from "./dieChallenge";
 import { BoxIndicator } from "./boxIndicator";
 import { CardHighlight } from "./cardHighlight";
+import { playableCard } from "./playableCard";
 
 
 export class PlayerHand {
-    private cards: Card[] = [];
+    private cards: playableCard[] = [];
     private handAnchor: TransformNode;
     private arcRadius: number = 5;
-    private draggedCard: Card | null = null;
+    private draggedCard: playableCard | null = null;
+    private hilightCard: Card;
     public cardIndicator: BoxIndicator;
 
-    public setDraggedCard(draggedCard: Card) {
+    public setDraggedCard(draggedCard: playableCard) {
         if (this.draggedCard) this.draggedCard.isDragged = false;
         this.draggedCard = draggedCard;
         if (this.draggedCard) this.draggedCard.isDragged = true;
@@ -23,6 +25,12 @@ export class PlayerHand {
 
     constructor(private dieChellange: DieChallenge) {
 
+        this.hilightCard = new Card("Hilight Card", dieChellange, "", "", Color3.White());
+        this.hilightCard.parent = dieChellange.camera;
+        this.hilightCard.position = new Vector3(0, 0, 2);
+        this.hilightCard.scaling = new Vector3(1, 1, 1);
+        this.hilightCard.setEnabled(false);
+
         this.handAnchor = new TransformNode("handAnchor", dieChellange);
         this.handAnchor.parent = dieChellange.camera;
         this.cardIndicator = new BoxIndicator(dieChellange, dieChellange.spiritBox.floor)
@@ -31,13 +39,13 @@ export class PlayerHand {
         this.handAnchor.rotation = new Vector3(0, 0, 0);
     }
 
-    public addCard(card: Card) {
+    public addCard(card: playableCard) {
         card.parent = this.handAnchor;
         this.cards.push(card);
         this.organizeHand();
     }
 
-    public removeCard(card: Card) {
+    public removeCard(card: playableCard) {
         const initialLength = this.cards.length;
         this.cards = this.cards.filter(c => c.uniqueId !== card.uniqueId);
 
@@ -74,7 +82,7 @@ export class PlayerHand {
     public OnPointerDown() {
         const pick = this.dieChellange.pick(this.dieChellange.pointerX, this.dieChellange.pointerY, (m) => m instanceof Card);
         if (pick.hit && pick.pickedMesh) {
-            this.draggedCard = pick.pickedMesh as Card;
+            this.draggedCard = pick.pickedMesh as playableCard;
             this.dieChellange.stopAnimation(this.draggedCard);
             this.draggedCard.animations = [];
             this.draggedCard.setParent(null, true, true);
@@ -113,6 +121,7 @@ export class PlayerHand {
 
     private static readonly targetAngleX = Math.PI / 2;
     public PointerMove() {
+        this.handleHover();
         if (this.draggedCard) {
             const playHeight = -2.45;
             const dragPlane = Plane.FromPositionAndNormal(
@@ -171,5 +180,25 @@ export class PlayerHand {
             CardHighlight.updateIndicator(this.draggedCard, this.cardIndicator)
         }
     }
+
+    public handleHover() {
+    if (this.draggedCard) {
+        this.hilightCard.setEnabled(false);
+        return;
+    }
+    const pick = this.dieChellange.pick(
+        this.dieChellange.pointerX, 
+        this.dieChellange.pointerY, 
+        (m) => m instanceof playableCard
+    );
+
+    if (pick.hit && pick.pickedMesh) {
+        const hoveredCard = pick.pickedMesh as playableCard;
+        this.hilightCard.material = hoveredCard.material;
+        this.hilightCard.setEnabled(true);
+    } else {
+        this.hilightCard.setEnabled(false);
+    }
+}
 }
 

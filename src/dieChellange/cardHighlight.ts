@@ -39,17 +39,17 @@ export class CardHighlight {
         if(card === null || highlight === null || !dieChallenge?.spiritBox?.isInBound(card.getAbsolutePosition()))
         {
             const dice = dieChallenge?.dice;
-            dice?.forEach(die => die.setGlow(false));
+            dice?.forEach(die => die.removeGlow());
             indicator.hide();
             return;
         }
         const split = highlight?.getSplit(card)
-        split?.affected.forEach(die => die.setGlow(true));
-        split?.unaffected.forEach(die => die.setGlow(false));
+        split?.affected.forEach(die => die.setGlow());
+        split?.unaffected.forEach(die => die.removeGlow());
         indicator.update(card.getAbsolutePosition(), highlight?.indicatorSize || 0)
     }
 
     public clearGlow(dice: Die[]): void {
-        dice.forEach(die => die.setGlow(false));
+        dice.forEach(die => die.setGlow());
     }
 }
