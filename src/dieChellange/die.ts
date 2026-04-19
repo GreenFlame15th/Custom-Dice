@@ -95,6 +95,14 @@ export class Die extends DieChallengeObject {
         this.hilightMesh.setEnabled(false);
     }
 
+    private static readonly epsilon: number = 1;
+    public isStill(): boolean {
+    const body = this.physicsAggregate.body;
+    const linVel = body.getLinearVelocity();
+    const angVel = body.getAngularVelocity();
+    return linVel.lengthSquared() < Die.epsilon && angVel.lengthSquared() < Die.epsilon;
+}
+
     public getTopValue(): number {
         let maxDot = -Infinity;
         let topIndex = 0;

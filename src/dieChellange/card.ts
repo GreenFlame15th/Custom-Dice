@@ -91,8 +91,8 @@ export class Card extends DieChallengeObject {
 
     public animateTo(position: Vector3, rotation: Vector3) {
         const frameRate = 30;
-        Animation.CreateAndStartAnimation("cardMove", this, "position", frameRate, 1, this.position, position, Animation.ANIMATIONLOOPMODE_CONSTANT);
-        Animation.CreateAndStartAnimation("cardRot", this, "rotation", frameRate, 1, this.rotation, rotation, Animation.ANIMATIONLOOPMODE_CONSTANT);
+        Animation.CreateAndStartAnimation("cardMove", this, "position", frameRate, 20, this.position, position, Animation.ANIMATIONLOOPMODE_CONSTANT);
+        Animation.CreateAndStartAnimation("cardRot", this, "rotation", frameRate, 20, this.rotation, rotation, Animation.ANIMATIONLOOPMODE_CONSTANT);
     }
 
     public animateToOrgin() { this.animateTo(this.originalPosition, this.originalRotation) }
@@ -100,5 +100,11 @@ export class Card extends DieChallengeObject {
     public setOrgin() {
         this.originalPosition = this.getAbsolutePosition().clone();
         this.originalRotation = this.absoluteRotationQuaternion.toEulerAngles().clone();
+    }
+
+        public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures?: boolean): void {
+        this.material?.dispose(true, true);
+        if(this.isDragged) this.getDieChallenge()?.hand.setDraggedCard(null);
+        super.dispose(doNotRecurse, disposeMaterialAndTextures);
     }
 }

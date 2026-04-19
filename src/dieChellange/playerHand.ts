@@ -15,10 +15,18 @@ export class PlayerHand {
     private hilightCard: Card;
     public cardIndicator: BoxIndicator;
 
-    public setDraggedCard(draggedCard: playableCard) {
+    public setDraggedCard(draggedCard: playableCard | null) {
         if (this.draggedCard) this.draggedCard.isDragged = false;
         this.draggedCard = draggedCard;
-        if (this.draggedCard) this.draggedCard.isDragged = true;
+        const camera = this.dieChellange.camera;
+        const isAttached = !!camera.inputs.attachedToElement;
+        if (draggedCard) {
+            if(isAttached) camera.detachControl();
+            draggedCard.isDragged = true;
+        }
+        else {
+            if(!isAttached) camera.attachControl();
+        }
     }
 
     public getDraggedCard() { return this.draggedCard; }
@@ -26,9 +34,7 @@ export class PlayerHand {
     constructor(private dieChellange: DieChallenge) {
 
         this.hilightCard = new Card("Hilight Card", dieChellange, "", "", Color3.White());
-        this.hilightCard.parent = dieChellange.camera;
-        this.hilightCard.position = new Vector3(0, 0, 2);
-        this.hilightCard.scaling = new Vector3(1, 1, 1);
+        this.hilightCard.setParent(dieChellange.camera);
         this.hilightCard.setEnabled(false);
 
         this.handAnchor = new TransformNode("handAnchor", dieChellange);
@@ -82,13 +88,13 @@ export class PlayerHand {
     public OnPointerDown() {
         const pick = this.dieChellange.pick(this.dieChellange.pointerX, this.dieChellange.pointerY, (m) => m instanceof Card);
         if (pick.hit && pick.pickedMesh) {
-            this.draggedCard = pick.pickedMesh as playableCard;
+            this.setDraggedCard(pick.pickedMesh as playableCard);
             this.dieChellange.stopAnimation(this.draggedCard);
-            this.draggedCard.animations = [];
-            this.draggedCard.setParent(null, true, true);
-            this.dieChellange.camera.detachControl();
-            this.draggedCard.setInHand(false);
-            this.draggedCard.onStartDrag(this);
+            if (this.draggedCard) this.draggedCard.animations = [];
+            this.draggedCard?.setParent(null, true, true);
+            this.draggedCard?.setInHand(false);
+            this.draggedCard?.onStartDrag(this);
+            this.hilightCard.setEnabled(false);
         }
     }
     public OnPointerUp() {
@@ -113,15 +119,14 @@ export class PlayerHand {
                 this.draggedCard.onEndDrag(this);
                 this.organizeHand();
             }
-            this.cardIndicator.hide();
-            this.draggedCard = null;
-            this.dieChellange.camera.attachControl(this.dieChellange.canvas, true);
         }
+
+        this.cardIndicator.hide();
+        this.setDraggedCard(null);
     }
 
     private static readonly targetAngleX = Math.PI / 2;
     public PointerMove() {
-        this.handleHover();
         if (this.draggedCard) {
             const playHeight = -2.45;
             const dragPlane = Plane.FromPositionAndNormal(
@@ -176,29 +181,51 @@ export class PlayerHand {
     }
 
     public OnUpdate = () => {
+        this.handleHover();
+
         if (this.cardIndicator != null) {
             CardHighlight.updateIndicator(this.draggedCard, this.cardIndicator)
         }
     }
 
+    private hoverStartTime: number = 0;
+    private currentHoveredCardId: number | null = null;
+    private readonly hoverDelay: number = 200;
     public handleHover() {
-    if (this.draggedCard) {
-        this.hilightCard.setEnabled(false);
-        return;
-    }
-    const pick = this.dieChellange.pick(
-        this.dieChellange.pointerX, 
-        this.dieChellange.pointerY, 
-        (m) => m instanceof playableCard
-    );
+        if (this.draggedCard) {
+            this.hilightCard.setEnabled(false);
+            this.currentHoveredCardId = null;
+            return;
+        }
 
-    if (pick.hit && pick.pickedMesh) {
-        const hoveredCard = pick.pickedMesh as playableCard;
-        this.hilightCard.material = hoveredCard.material;
-        this.hilightCard.setEnabled(true);
-    } else {
-        this.hilightCard.setEnabled(false);
+        const pick = this.dieChellange.pick(
+            this.dieChellange.pointerX,
+            this.dieChellange.pointerY,
+            (m) => m instanceof playableCard
+        );
+
+        if (pick.hit && pick.pickedMesh) {
+            const hoveredCard = pick.pickedMesh as playableCard;
+            const now = performance.now();
+
+            if (this.currentHoveredCardId !== hoveredCard.uniqueId) {
+                this.currentHoveredCardId = hoveredCard.uniqueId;
+                this.hoverStartTime = now;
+                this.hilightCard.setEnabled(false);
+            }
+
+            else if (now - this.hoverStartTime >= this.hoverDelay) {
+                this.hilightCard.material = hoveredCard.material;
+                this.hilightCard.setEnabled(true);
+                this.hilightCard.rotation = Vector3.Zero();
+                this.hilightCard.position = new Vector3(0, 0, 2);
+                this.hilightCard.scaling = new Vector3(1, 1, 1);
+            }
+        } else {
+            this.hilightCard.setEnabled(false);
+            this.currentHoveredCardId = null;
+            this.hoverStartTime = 0;
+        }
     }
-}
 }
 

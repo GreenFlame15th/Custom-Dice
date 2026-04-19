@@ -27,7 +27,7 @@ export class CardHighlight {
 
     public getSplit(card: Card): { affected: Die[], unaffected: Die[] } {
         const origin = card.getAbsolutePosition();
-        const split = this.getDiceInRange(origin, card.getDieChallenge()?.dice ?? []);
+        const split = this.getDiceInRange(origin, card.getDieChallenge()?.dieManager.dice ?? []);
         return split;
     }
 
@@ -38,7 +38,7 @@ export class CardHighlight {
 
         if(card === null || highlight === null || !dieChallenge?.spiritBox?.isInBound(card.getAbsolutePosition()))
         {
-            const dice = dieChallenge?.dice;
+            const dice = dieChallenge?.dieManager.dice;
             dice?.forEach(die => die.removeGlow());
             indicator.hide();
             return;
