@@ -90,23 +90,29 @@ export class Die extends DieChallengeObject {
 
   public reSet() {
     const body = this.physicsAggregate.body;
+    if (this.material) this.material.alpha = 0
 
     body.setLinearVelocity(Vector3.Zero());
     body.setAngularVelocity(Vector3.Zero());
 
-    body.setTargetTransform(Vector3.Zero(), Quaternion.Identity());
+    body.disablePreStep = false;
 
-    const impulse = new Vector3(Die.randomHalf(), 0.1, Die.randomHalf())
-      .normalize()
-      .scale(12);
+    this.position.setAll(0);
+    this.rotationQuaternion = Quaternion.Identity();
 
-    body.applyImpulse(impulse, Vector3.Zero());
+    this.getScene().onAfterPhysicsObservable.addOnce(() => {
+      body.disablePreStep = true;
 
-    body.setAngularVelocity(
-      new Vector3(Die.randomHalf(), Die.randomHalf(), Die.randomHalf())
+      body.setLinearVelocity(new Vector3(Die.randomHalf(), 0.25, Die.randomHalf())
         .normalize()
-        .scale(15),
-    );
+        .scale(8));
+      body.setAngularVelocity(new Vector3(Die.randomHalf(), Die.randomHalf(), Die.randomHalf())
+        .normalize()
+        .scale(15),);
+
+
+      if (this.material) this.material.alpha = 1
+    });
   }
 
   private static getHighlightMaterial(scene: Scene): StandardMaterial {

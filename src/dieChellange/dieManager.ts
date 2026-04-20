@@ -63,10 +63,11 @@ export class DieManager {
       die.setEnabled(false);
       die.physicsAggregate.body.setMotionType(PhysicsMotionType.STATIC);
     });
-    this._runResetSequence();
+    this.runResetSequence();
   }
 
-  private async _runResetSequence() {
+
+  private async runResetSequence() {
     const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
     await delay(1);
@@ -76,7 +77,7 @@ export class DieManager {
       die.physicsAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
       await delay(1);
       die.reSet();
-      await delay(500);
+      await delay(100);
     }
   }
 
