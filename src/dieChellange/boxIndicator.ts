@@ -1,50 +1,60 @@
-import { MeshBuilder, StandardMaterial, Color3, Scene, Constants, Vector3, Mesh, VertexData, CreateDiscVertexData } from "@babylonjs/core";
+import {
+  MeshBuilder,
+  StandardMaterial,
+  Color3,
+  Scene,
+  Constants,
+  Vector3,
+  Mesh,
+  VertexData,
+  CreateDiscVertexData,
+} from "@babylonjs/core";
 import { DieChallengeObject } from "./dieChellangeObject";
 
 export class BoxIndicator extends DieChallengeObject {
-    
-    constructor(scene: Scene, private parentMesh: Mesh) {
-        super("Highlight", scene);
-        
-        const vertexData = CreateDiscVertexData({ radius: 1 });
-        vertexData.applyToMesh(this);
+  constructor(
+    scene: Scene,
+    private parentMesh: Mesh,
+  ) {
+    super("Highlight", scene);
 
-        const engine = scene.getEngine();
+    const vertexData = CreateDiscVertexData({ radius: 1 });
+    vertexData.applyToMesh(this);
 
-        this.parent = parentMesh;
-        this.position.y = 0;
-        this.isVisible = false;
-        this.alphaIndex = 999;
+    const engine = scene.getEngine();
 
-        const mat = new StandardMaterial("HighlightMat", scene);
-        mat.diffuseColor = new Color3(0.4, 0.7, 1);
-        mat.emissiveColor = new Color3(0, 0.15, 0.3);
-        mat.alpha = 0.2;
-        this.material = mat;
+    this.parent = parentMesh;
+    this.position.y = 0;
+    this.isVisible = false;
+    this.alphaIndex = 999;
 
-        this.onBeforeRenderObservable.add(() => {
-            engine.setStencilFunction(Constants.EQUAL);
-            engine.setStencilFunctionReference(1);
-        });
+    const mat = new StandardMaterial("HighlightMat", scene);
+    mat.alpha = 0.2;
+    this.material = mat;
 
-        this.onAfterRenderObservable.add(() => {
-            engine.setStencilFunction(Constants.ALWAYS);
-        });
+    this.onBeforeRenderObservable.add(() => {
+      engine.setStencilFunction(Constants.EQUAL);
+      engine.setStencilFunctionReference(1);
+    });
+
+    this.onAfterRenderObservable.add(() => {
+      engine.setStencilFunction(Constants.ALWAYS);
+    });
+  }
+
+  public update(worldPoint: Vector3, size: number, color: Color3) {
+    this.isVisible = true;
+    this.scaling.setAll(size);
+    const newPosition = worldPoint.clone();
+    newPosition.y = (this.parentMesh ?? this).getAbsolutePosition().y;
+    this.setAbsolutePosition(newPosition);
+    if (this.material && this.material instanceof StandardMaterial) {
+      this.material.diffuseColor = color;
+      this.material.emissiveColor = color;
     }
+  }
 
-    public setRadius(size: number) {
-        this.scaling.set(size, size, size);
-    }
-
-    public update(worldPoint: Vector3, size: number) {
-        this.isVisible = true;
-        this.scaling.setAll(size);
-        const newPosition = worldPoint.clone();
-        newPosition.y = (this.parentMesh ?? this).getAbsolutePosition().y;
-        this.setAbsolutePosition(newPosition);
-    }
-
-    public hide() {
-        this.isVisible = false;
-    }
+  public hide() {
+    this.isVisible = false;
+  }
 }
