@@ -1,7 +1,7 @@
 import { Color3, Vector3 } from "@babylonjs/core";
-import { Die } from "./die";
-import { Card } from "./card";
 import { BoxIndicator } from "./boxIndicator";
+import { Card } from "./card";
+import { Die } from "./die";
 
 export class CardHighlight {
   private readonly highlightSizeSq: number;

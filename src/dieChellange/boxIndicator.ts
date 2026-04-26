@@ -1,13 +1,11 @@
 import {
-  MeshBuilder,
-  StandardMaterial,
   Color3,
-  Scene,
   Constants,
-  Vector3,
-  Mesh,
-  VertexData,
   CreateDiscVertexData,
+  Mesh,
+  Scene,
+  StandardMaterial,
+  Vector3
 } from "@babylonjs/core";
 import { DieChallengeObject } from "./dieChellangeObject";
 

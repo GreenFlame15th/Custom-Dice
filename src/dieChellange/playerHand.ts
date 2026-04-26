@@ -1,21 +1,18 @@
 import {
   TransformNode,
-  Scene,
   Vector3,
-  Camera,
   Plane,
   Quaternion,
   Color3,
 } from "@babylonjs/core";
 import { Card } from "./card";
-import { SpiritBox } from "./spiritBox";
 import { DieChallenge } from "./dieChallenge";
-import { BoxIndicator } from "./boxIndicator";
 import { CardHighlight } from "./cardHighlight";
 import { playableCard } from "./playableCard";
 import { ReRollCard } from "./Cards/reRollCard";
 import { ScoreCard } from "./Cards/scoreCard";
 import { ResetCard } from "./Cards/reSetCard";
+import { BoxIndicator } from "./boxIndicator";
 
 export class PlayerHand {
   private cards: playableCard[] = [];
@@ -71,7 +68,7 @@ export class PlayerHand {
 
   public reSet() {
     this.resetMode = true;
-    this.cards.forEach((card) => card.removed(this));
+    this.cards.forEach((card) => card.remove(this));
     this.resetMode = false;
 
     this.addCard(new ReRollCard("reroll1", this.dieChellange));
@@ -157,7 +154,7 @@ export class PlayerHand {
         const play = this.draggedCard.onPlay(this);
 
         if (play) {
-          this.draggedCard.removed(this);
+          this.draggedCard.remove(this);
           this.organizeHand();
         } else {
           this.draggedCard.setInHand(true);
