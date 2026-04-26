@@ -1,17 +1,16 @@
 import {
-  Mesh,
-  Vector3,
-  Scene,
-  Vector4,
-  CreateBoxVertexData,
-  StandardMaterial,
-  DynamicTexture,
   Color3,
+  CreateBoxVertexData,
+  DynamicTexture,
+  Mesh,
+  MeshBuilder,
   PhysicsAggregate,
   PhysicsShapeType,
-  MeshBuilder,
-  Engine,
   Quaternion,
+  Scene,
+  StandardMaterial,
+  Vector3,
+  Vector4
 } from "@babylonjs/core";
 import { DieChallengeObject } from "./dieChellangeObject";
 

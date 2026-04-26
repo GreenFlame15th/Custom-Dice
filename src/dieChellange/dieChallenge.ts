@@ -1,28 +1,18 @@
 import {
-  Engine,
-  Scene,
-  Color4,
-  HavokPlugin,
-  Vector3,
   ArcRotateCamera,
-  PointLight,
-  KeyboardEventTypes,
-  PointerEventTypes,
-  Camera,
+  Color4,
+  Engine,
+  HavokPlugin,
   HighlightLayer,
+  PointerEventTypes,
+  PointLight,
+  Scene,
+  Vector3
 } from "@babylonjs/core";
-import {
-  Rectangle,
-  Control,
-  AdvancedDynamicTexture,
-  TextBlock,
-} from "@babylonjs/gui/2D";
 import HavokPhysics from "@babylonjs/havok";
-import { Die } from "./die";
-import { SpiritBox } from "./spiritBox";
-import { PlayerHand } from "./playerHand";
-import { ReRollCard } from "./Cards/reRollCard";
 import { DieManager } from "./dieManager";
+import { PlayerHand } from "./playerHand";
+import { SpiritBox } from "./spiritBox";
 
 export class DieChallenge extends Scene {
   public dieManager: DieManager;
@@ -36,7 +26,7 @@ export class DieChallenge extends Scene {
     public canvas: HTMLCanvasElement,
   ) {
     super(engine);
-    this.dieManager = new DieManager();
+    this.dieManager = new DieManager(this);
     this.highlightLayer = new HighlightLayer("dieHighlight", this);
     this.highlightLayer.innerGlow = false;
     this.highlightLayer.outerGlow = true;
@@ -59,8 +49,8 @@ export class DieChallenge extends Scene {
 
     this.spiritBox = new SpiritBox(this);
     this.hand = new PlayerHand(this);
-    this.setupObservables();
     this.dieManager.setUpDice(this);
+    this.setupObservables();
 
     this.hand.reSet();
 
@@ -110,5 +100,7 @@ export class DieChallenge extends Scene {
 
     this.onBeforeRenderObservable.add(this.dieManager.updateDiceSum);
     this.onBeforeRenderObservable.add(this.hand.OnUpdate);
+    
+    this.onBeforePhysicsObservable.add(this.dieManager.InBoundCheck);
   }
 }

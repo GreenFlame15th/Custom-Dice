@@ -7,6 +7,7 @@ import {
 } from "@babylonjs/gui";
 import { Die } from "./die";
 import { Color3, PhysicsMotionType, Scene } from "@babylonjs/core";
+import { DieChallenge } from "./dieChallenge";
 
 export class DieManager {
   public dice: Die[] = [];
@@ -95,6 +96,16 @@ export class DieManager {
     return this.dice.some((die) => !die.isStill());
   }
 
+  public InBoundCheck()
+  {
+    this.dice?.forEach((die) => {
+      if(!this.dieChallenge.spiritBox.isInBound(die.getAbsolutePosition()))
+      {
+        die.reSet();
+      }
+    })
+  }
+
   public Score(): boolean {
     if (this.Rolling()) return false;
     this.score += this.getSum();
@@ -118,7 +129,7 @@ export class DieManager {
     return this.dice.reduce((sum, die) => sum + die.getTopValue(), 0);
   }
 
-  public constructor() {
+  public constructor(private dieChallenge : DieChallenge) {
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
     const panel = new Rectangle();

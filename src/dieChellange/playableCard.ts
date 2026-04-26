@@ -5,7 +5,7 @@ export abstract class playableCard extends Card
 {
         public abstract onPlay(hand: PlayerHand): boolean;
 
-    public removed(hand: PlayerHand) {
+    public remove(hand: PlayerHand) {
         hand.removeCard(this);
         this.dispose();
     }

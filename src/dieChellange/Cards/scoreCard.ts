@@ -10,7 +10,7 @@ export class ScoreCard extends playableCard {
       name,
       scene,
       "Score",
-      "Score all dice (not playable when dice are in motsion)",
+      "Score all dice (cannot be played while dice are in motion)",
       new Color3(0, 0.761, 0),
     );
     this.cardHighlight = new CardHighlight(12, 12, new Color3(0, 1, 0));

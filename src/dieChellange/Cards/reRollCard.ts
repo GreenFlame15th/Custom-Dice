@@ -10,7 +10,7 @@ export class ReRollCard extends playableCard {
       name,
       scene,
       "Re-roll",
-      "Rerolls all card in an area",
+      "Rerolls all dice in an area",
       new Color3(0.094, 0.678, 0.69),
     );
     this.cardHighlight = new CardHighlight(
